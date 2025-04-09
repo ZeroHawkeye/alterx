@@ -42,7 +42,7 @@ type Options struct {
 	MaxSize int
 }
 
-// Mutator
+// Mutator 是生成置换的核心结构体
 type Mutator struct {
 	Options      *Options
 	payloadCount int
@@ -52,7 +52,7 @@ type Mutator struct {
 	maxkeyLenInBytes int
 }
 
-// New creates and returns new mutator instance from options
+// New 创建并返回一个新的置换生成器实例
 func New(opts *Options) (*Mutator, error) {
 	if len(opts.Domains) == 0 {
 		return nil, fmt.Errorf("no input provided to calculate permutations")
@@ -70,7 +70,7 @@ func New(opts *Options) (*Mutator, error) {
 		}
 		opts.Patterns = DefaultConfig.Patterns
 	}
-	// purge duplicates if any
+	// 清除重复项
 	for k, v := range opts.Payloads {
 		dedupe := sliceutil.Dedupe(v)
 		if len(v) != len(dedupe) {
@@ -93,8 +93,7 @@ func New(opts *Options) (*Mutator, error) {
 	return m, nil
 }
 
-// Execute calculates all permutations using input wordlist and patterns
-// and writes them to a string channel
+// Execute 使用输入的词表和模式计算所有的置换，并将结果写入字符串通道
 func (m *Mutator) Execute(ctx context.Context) <-chan string {
 	var maxBytes int
 	if DedupeResults {
@@ -105,8 +104,10 @@ func (m *Mutator) Execute(ctx context.Context) <-chan string {
 	results := make(chan string, len(m.Options.Patterns))
 	go func() {
 		now := time.Now()
+		// 遍历所有输入
 		for _, v := range m.Inputs {
 			varMap := getSampleMap(v.GetMap(), m.Options.Payloads)
+			// 遍历所有模式
 			for _, pattern := range m.Options.Patterns {
 				if err := checkMissing(pattern, varMap); err == nil {
 					statement := Replace(pattern, v.GetMap())
@@ -114,6 +115,7 @@ func (m *Mutator) Execute(ctx context.Context) <-chan string {
 					case <-ctx.Done():
 						return
 					default:
+						// 对每个模式进行组合爆破
 						m.clusterBomb(statement, results)
 					}
 				} else {
@@ -126,7 +128,7 @@ func (m *Mutator) Execute(ctx context.Context) <-chan string {
 	}()
 
 	if DedupeResults {
-		// drain results
+		// 去除结果中的重复项
 		d := dedupe.NewDedupe(results, maxBytes)
 		d.Drain()
 		return d.GetResults()
@@ -134,7 +136,7 @@ func (m *Mutator) Execute(ctx context.Context) <-chan string {
 	return results
 }
 
-// ExecuteWithWriter executes Mutator and writes results directly to type that implements io.Writer interface
+// ExecuteWithWriter 执行置换生成并将结果直接写入实现io.Writer接口的对象
 func (m *Mutator) ExecuteWithWriter(Writer io.Writer) error {
 	if Writer == nil {
 		return errorutil.NewWithTag("alterx", "writer destination cannot be nil")
@@ -149,11 +151,11 @@ func (m *Mutator) ExecuteWithWriter(Writer io.Writer) error {
 			return nil
 		}
 		if m.Options.Limit > 0 && m.payloadCount == m.Options.Limit {
-			// we can't early exit, due to abstraction we have to conclude the elaboration to drain all dedupers
+			// 如果达到了限制，我们不能提前退出，由于抽象，我们必须完成处理以耗尽所有去重器
 			continue
 		}
 		if maxFileSize <= 0 {
-			// drain all dedupers when max-file size reached
+			// 当达到最大文件大小时，耗尽所有去重器
 			continue
 		}
 
@@ -171,24 +173,23 @@ func (m *Mutator) ExecuteWithWriter(Writer io.Writer) error {
 		if err != nil {
 			return err
 		}
-		// update maxFileSize limit after each write
+		// 每次写入后更新最大文件大小限制
 		maxFileSize -= n
 		m.payloadCount++
 	}
 }
 
-// EstimateCount estimates number of payloads that will be created
-// without actually executing/creating permutations
+// EstimateCount 估计将创建的置换数量，而不实际执行/创建置换
 func (m *Mutator) EstimateCount() int {
 	counter := 0
 	for _, v := range m.Inputs {
 		varMap := getSampleMap(v.GetMap(), m.Options.Payloads)
 		for _, pattern := range m.Options.Patterns {
 			if err := checkMissing(pattern, varMap); err == nil {
-				// if say patterns is {{sub}}.{{sub1}}-{{word}}.{{root}}
-				// and input domain is api.scanme.sh its clear that {{sub1}} here will be empty/missing
-				// in such cases `alterx` silently skips that pattern for that specific input
-				// this way user can have a long list of patterns but they are only used if all required data is given (much like self-contained templates)
+				// 如果模式是 {{sub}}.{{sub1}}-{{word}}.{{root}}
+				// 且输入域名是 api.scanme.sh，显然这里的 {{sub1}} 将是空的/缺失的
+				// 在这种情况下，`alterx` 会静默跳过该特定输入的该模式
+				// 这样，用户可以有一个长的模式列表，但它们只在所有必需的数据都给出时使用（类似于自包含模板）
 				statement := Replace(pattern, v.GetMap())
 				bin := unsafeToBytes(statement)
 				if m.maxkeyLenInBytes < len(bin) {
@@ -210,8 +211,8 @@ func (m *Mutator) EstimateCount() int {
 	return counter
 }
 
-// DryRun executes payloads without storing and returns number of payloads created
-// this value is also stored in variable and can be accessed via getter `PayloadCount`
+// DryRun 执行但不存储置换，并返回创建的置换数量
+// 这个值也存储在变量中，可以通过getter "PayloadCount"访问
 func (m *Mutator) DryRun() int {
 	m.payloadCount = 0
 	err := m.ExecuteWithWriter(io.Discard)
@@ -221,34 +222,32 @@ func (m *Mutator) DryRun() int {
 	return m.payloadCount
 }
 
-// clusterBomb calculates all payloads of clusterbomb attack and sends them to result channel
+// clusterBomb 计算组合爆破攻击的所有有效载荷，并将它们发送到结果通道
 func (m *Mutator) clusterBomb(template string, results chan string) {
-	// Early Exit: this is what saves clusterBomb from stackoverflows and reduces
-	// n*len(n) iterations and n recursions
+	// 提前退出：这是使clusterbomb免于堆栈溢出并减少
+	// n*len(n)次迭代和n次递归的原因
 	varsUsed := getAllVars(template)
 	if len(varsUsed) == 0 {
-		// clusterBomb is not required
-		// just send existing template as result and exit
+		// 不需要组合爆破
+		// 只需将现有模板作为结果发送并退出
 		results <- template
 		return
 	}
 	payloadSet := map[string][]string{}
-	// instead of sending all payloads only send payloads that are used
-	// in template/statement
+	// 不是发送所有有效载荷，只发送在模板/声明中使用的有效载荷
 	leftmostSub := strings.Split(template, ".")[0]
 	for _, v := range varsUsed {
 		payloadSet[v] = []string{}
 		for _, word := range m.Options.Payloads[v] {
 			if !strings.HasPrefix(leftmostSub, word) && !strings.HasSuffix(leftmostSub, word) {
-				// skip all words that are already present in leftmost sub , it is highly unlikely
-				// we will ever find api-api.example.com
+				// 跳过已经出现在最左侧子域名中的所有单词
+				// 我们很可能永远不会找到 api-api.example.com
 				payloadSet[v] = append(payloadSet[v], word)
 			}
 		}
 	}
 	payloads := NewIndexMap(payloadSet)
-	// in clusterBomb attack no of payloads generated are
-	// len(first_set)*len(second_set)*len(third_set)....
+	// 在组合爆破攻击中生成的有效载荷数量...
 	callbackFunc := func(varMap map[string]interface{}) {
 		results <- Replace(template, varMap)
 	}

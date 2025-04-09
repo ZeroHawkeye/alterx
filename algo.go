@@ -1,31 +1,32 @@
 package alterx
 
-// Nth Order ClusterBomb with variable length array/values
+// ClusterBomb 实现了N阶变量组合爆破算法，用可变长度数组/值
+// 该算法用于生成所有可能的变量组合
 func ClusterBomb(payloads *IndexMap, callback func(varMap map[string]interface{}), Vector []string) {
-	// The Goal of implementation is to reduce number of arbitary values by constructing a vector
+	// 算法目标：通过构建向量减少任意值的数量
 
-	// Algorithm
-	// step 1) Initialize/Input a IndexMap(Here: payloads)
-	// indexMap is nothing but a map with all of keys indexed in a different map
+	// 算法步骤
+	// 步骤1) 初始化/输入一个IndexMap(这里是：payloads)
+	// indexMap实际上是一个将所有键索引到另一个映射中的映射
 
-	// step 2) Vector is n length array such that n = len(payloads)
-	// Each value in payloads(IndexMap) contains a array
-	// ex: payloads["word"] = []string{"api","dev","cloud"}
+	// 步骤2) Vector是长度为n的数组，使得n = len(payloads)
+	// payloads(IndexMap)中的每个值包含一个数组
+	// 例如：payloads["word"] = []string{"api","dev","cloud"}
 
-	// step 3) Initial length of Vector is 0 . By using recursion
-	// we construct a Vector with all possible values of payloads[N] where N = 0 < len(payloads)
+	// 步骤3) Vector的初始长度为0。通过递归
+	// 我们构建一个包含payloads[N]所有可能值的Vector，其中N = 0 < len(payloads)
 
-	// step 4) At end of recursion len(Vector) == len(payloads).Cap() - 1
-	// which translates that Vn = {r0,r1,...,rn} and only rn is missing
-	// in this case/situation iterate over all possible values of rn i.e payload.GetNth(n)
+	// 步骤4) 在递归结束时，len(Vector) == len(payloads).Cap() - 1
+	// 这意味着Vn = {r0,r1,...,rn}，只有rn缺失
+	// 在这种情况下，遍历rn的所有可能值，即payload.GetNth(n)
 	if len(Vector) == payloads.Cap()-1 {
-		// end of vector
+		// 向量末端
 		vectorMap := map[string]interface{}{}
 		for k, v := range Vector {
-			// construct a map[variable]=value with all available vectors
+			// 用所有可用向量构建map[变量]=值
 			vectorMap[payloads.KeyAtNth(k)] = v
 		}
-		// one element a.k.a last element is missing from ^ map
+		// 映射中缺少一个元素，即最后一个元素
 		index := len(Vector)
 		for _, elem := range payloads.GetNth(index) {
 			vectorMap[payloads.KeyAtNth(index)] = elem
@@ -34,9 +35,9 @@ func ClusterBomb(payloads *IndexMap, callback func(varMap map[string]interface{}
 		return
 	}
 
-	// step 5) if vector is not filled until payload.Cap()-1
-	// iterate over rth variable payloads and execute them using recursion
-	// if Vector is empty or at 1st index fix iterate over xth position
+	// 步骤5) 如果向量尚未填充到payload.Cap()-1
+	// 遍历第r个变量的有效载荷并使用递归执行它们
+	// 如果Vector为空或在第1个索引处固定，则遍历第x个位置
 	index := len(Vector)
 	for _, v := range payloads.GetNth(index) {
 		var tmp []string
@@ -44,29 +45,33 @@ func ClusterBomb(payloads *IndexMap, callback func(varMap map[string]interface{}
 			tmp = append(tmp, Vector...)
 		}
 		tmp = append(tmp, v)
-		ClusterBomb(payloads, callback, tmp) // Recursion
+		ClusterBomb(payloads, callback, tmp) // 递归调用
 	}
 }
 
+// IndexMap 是一个特殊的映射结构，允许通过索引访问键和值
 type IndexMap struct {
-	values  map[string][]string
-	indexes map[int]string
+	values  map[string][]string // 存储变量名到变量值列表的映射
+	indexes map[int]string      // 存储索引到变量名的映射
 }
 
+// GetNth 返回第n个位置的值列表
 func (o *IndexMap) GetNth(n int) []string {
 	return o.values[o.indexes[n]]
 }
 
+// Cap 返回映射中的元素数量
 func (o *IndexMap) Cap() int {
 	return len(o.values)
 }
 
-// KeyAtNth returns key present at Nth position
+// KeyAtNth 返回第n个位置的键
 func (o *IndexMap) KeyAtNth(n int) string {
 	return o.indexes[n]
 }
 
-// NewIndexMap returns type such that elements of map can be retrieved by a fixed index
+// NewIndexMap 返回一个类型，使得映射的元素可以通过固定索引检索
+// 这种实现使得可以通过数字索引访问映射元素，便于处理
 func NewIndexMap(values map[string][]string) *IndexMap {
 	i := &IndexMap{
 		values: values,

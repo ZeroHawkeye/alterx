@@ -10,18 +10,18 @@ import (
 	"golang.org/x/net/publicsuffix"
 )
 
-// Input contains parsed/evaluated data of a URL
+// Input 包含URL的解析/评估数据
 type Input struct {
-	TLD        string   // only TLD (right most part of subdomain) ex: `.uk`
-	ETLD       string   // Simply put public suffix (ex: co.uk)
-	SLD        string   // Second-level domain (ex: scanme)
-	Root       string   // Root Domain (eTLD+1) of Subdomain
-	Sub        string   // Sub or LeftMost prefix of subdomain
-	Suffix     string   // suffix is everything except `Sub` (Note: if domain is not multilevel Suffix==Root)
-	MultiLevel []string // (Optional) store prefix of multi level subdomains
+	TLD        string   // 顶级域名（子域名的最右部分），例如：`.uk`
+	ETLD       string   // 公共后缀，例如：co.uk
+	SLD        string   // 二级域名，例如：scanme
+	Root       string   // 根域名（eTLD+1）
+	Sub        string   // 子域名或子域名的最左前缀
+	Suffix     string   // 后缀是除了`Sub`之外的所有内容（注意：如果域名不是多级的，Suffix==Root）
+	MultiLevel []string // （可选）存储多级子域名的前缀
 }
 
-// GetMap returns variables map of input
+// GetMap 返回输入的变量映射
 func (i *Input) GetMap() map[string]interface{} {
 	m := map[string]interface{}{
 		"tld":    i.TLD,
@@ -31,37 +31,40 @@ func (i *Input) GetMap() map[string]interface{} {
 		"sub":    i.Sub,
 		"suffix": i.Suffix,
 	}
+	// 添加多级子域名到映射
 	for k, v := range i.MultiLevel {
 		m["sub"+strconv.Itoa(k+1)] = v
 	}
+	// 清除空值
 	for k, v := range m {
 		if v == "" {
-			// purge empty vars
+			// 清除空变量
 			delete(m, k)
 		}
 	}
 	return m
 }
 
-// NewInput parses URL to Input Vars
+// NewInput 将URL解析为Input变量
 func NewInput(inputURL string) (*Input, error) {
 	URL, err := urlutil.Parse(inputURL)
 	if err != nil {
 		return nil, err
 	}
-	// check if hostname contains *
+	// 检查主机名是否包含*
 	if strings.Contains(URL.Hostname(), "*") {
 		if strings.HasPrefix(URL.Hostname(), "*.") {
 			tmp := strings.TrimPrefix(URL.Hostname(), "*.")
 			URL.Host = strings.Replace(URL.Host, URL.Hostname(), tmp, 1)
 		}
-		// if * is present in middle ex: prod.*.hackerone.com
-		// skip it
+		// 如果*出现在中间，例如：prod.*.hackerone.com
+		// 跳过它
 		if strings.Contains(URL.Hostname(), "*") {
 			return nil, fmt.Errorf("input %v is not a valid url , skipping", inputURL)
 		}
 	}
 	ivar := &Input{}
+	// 获取公共后缀
 	suffix, _ := publicsuffix.PublicSuffix(URL.Hostname())
 	if strings.Contains(suffix, ".") {
 		ivar.ETLD = suffix
@@ -70,25 +73,27 @@ func NewInput(inputURL string) (*Input, error) {
 	} else {
 		ivar.TLD = suffix
 	}
+	// 获取有效顶级域名加一（eTLD+1）
 	rootDomain, err := publicsuffix.EffectiveTLDPlusOne(URL.Hostname())
 	if err != nil {
-		// this happens if input domain does not have eTLD+1 at all ex: `.com` or `co.uk`
+		// 如果输入域名根本没有eTLD+1，则会发生这种情况，例如：`.com`或`co.uk`
 		gologger.Warning().Msgf("input domain %v is eTLD/publicsuffix and not a valid domain name", URL.Hostname())
 		return ivar, nil
 	}
 	ivar.Root = rootDomain
+	// 计算二级域名
 	if ivar.ETLD != "" {
 		ivar.SLD = strings.TrimSuffix(rootDomain, "."+ivar.ETLD)
 	} else {
 		ivar.SLD = strings.TrimSuffix(rootDomain, "."+ivar.TLD)
 	}
-	// anything before root domain is subdomain
+	// 根域名之前的任何内容都是子域名
 	subdomainPrefix := strings.TrimSuffix(URL.Hostname(), rootDomain)
 	subdomainPrefix = strings.TrimSuffix(subdomainPrefix, ".")
 	if strings.Contains(subdomainPrefix, ".") {
-		// this is a multi level subdomain
-		// ex: something.level.scanme.sh
-		// in such cases variable name starts after 1st prefix
+		// 这是一个多级子域名
+		// 例如：something.level.scanme.sh
+		// 在这种情况下，变量名从第一个前缀之后开始
 		prefixes := strings.Split(subdomainPrefix, ".")
 		ivar.Sub = prefixes[0]
 		ivar.MultiLevel = prefixes[1:]

@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- 生成的SVG学习路线图 -->
+<svg width="1000" height="750" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+  <style>
+    .node rect { fill: #BBDEFB; stroke: #1565C0; stroke-width: 2px; }
+    .flow rect { fill: #C8E6C9; stroke: #2E7D32; stroke-width: 2px; }
+    .feature rect { fill: #FFECB3; stroke: #FF8F00; stroke-width: 2px; }
+    text { font-family: "SimHei", Arial, sans-serif; font-size: 14px; }
+    .title { font-family: "SimHei", Arial, sans-serif; font-size: 20px; font-weight: bold; fill: #333; }
+    .arrow { stroke: #333; stroke-width: 2; }
+    .arrowhead { fill: #333; }
+  </style>
+  
+  <!-- 标题 -->
+  <text x="50" y="40" class="title">AlterX 项目学习路线图</text>
+  <text x="50" y="70" font-size="14">快速定制化的子域名生成工具</text>
+  
+  <!-- 核心组件 -->
+  <g class="node">
+    <rect x="50" y="100" width="200" height="80" rx="5" ry="5" />
+    <text x="150" y="130" text-anchor="middle">入口文件</text>
+    <text x="150" y="150" text-anchor="middle">cmd/alterx/main.go</text>
+    <text x="150" y="170" text-anchor="middle">程序入口点</text>
+  </g>
+  
+  <g class="node">
+    <rect x="50" y="200" width="200" height="80" rx="5" ry="5" />
+    <text x="150" y="230" text-anchor="middle">配置处理</text>
+    <text x="150" y="250" text-anchor="middle">config.go</text>
+    <text x="150" y="270" text-anchor="middle">处理配置文件和默认参数</text>
+  </g>
+  
+  <g class="node">
+    <rect x="50" y="300" width="200" height="80" rx="5" ry="5" />
+    <text x="150" y="330" text-anchor="middle">命令行参数解析</text>
+    <text x="150" y="350" text-anchor="middle">internal/runner/</text>
+    <text x="150" y="370" text-anchor="middle">处理命令行运行时功能</text>
+  </g>
+  
+  <g class="node">
+    <rect x="400" y="100" width="200" height="80" rx="5" ry="5" />
+    <text x="500" y="130" text-anchor="middle">变异器</text>
+    <text x="500" y="150" text-anchor="middle">mutator.go</text>
+    <text x="500" y="170" text-anchor="middle">核心组件，生成域名变体</text>
+  </g>
+  
+  <g class="node">
+    <rect x="400" y="200" width="200" height="80" rx="5" ry="5" />
+    <text x="500" y="230" text-anchor="middle">输入处理</text>
+    <text x="500" y="250" text-anchor="middle">inputs.go</text>
+    <text x="500" y="270" text-anchor="middle">解析和处理域名输入</text>
+  </g>
+  
+  <g class="node">
+    <rect x="400" y="300" width="200" height="80" rx="5" ry="5" />
+    <text x="500" y="330" text-anchor="middle">替换器</text>
+    <text x="500" y="350" text-anchor="middle">replacer.go</text>
+    <text x="500" y="370" text-anchor="middle">处理模板中的变量替换</text>
+  </g>
+  
+  <g class="node">
+    <rect x="750" y="100" width="200" height="80" rx="5" ry="5" />
+    <text x="850" y="130" text-anchor="middle">算法</text>
+    <text x="850" y="150" text-anchor="middle">algo.go</text>
+    <text x="850" y="170" text-anchor="middle">提供组合爆破算法</text>
+  </g>
+  
+  <g class="node">
+    <rect x="750" y="200" width="200" height="80" rx="5" ry="5" />
+    <text x="850" y="230" text-anchor="middle">工具函数</text>
+    <text x="850" y="250" text-anchor="middle">util.go</text>
+    <text x="850" y="270" text-anchor="middle">提供辅助工具函数</text>
+  </g>
+  
+  <!-- 主要特性 -->
+  <text x="50" y="420" class="title">主要特性</text>
+  
+  <g class="feature">
+    <rect x="50" y="440" width="200" height="60" rx="5" ry="5" />
+    <text x="150" y="475" text-anchor="middle">快速和可定制化</text>
+  </g>
+  
+  <g class="feature">
+    <rect x="300" y="440" width="200" height="60" rx="5" ry="5" />
+    <text x="400" y="475" text-anchor="middle">自动单词丰富</text>
+  </g>
+  
+  <g class="feature">
+    <rect x="550" y="440" width="200" height="60" rx="5" ry="5" />
+    <text x="650" y="475" text-anchor="middle">预定义变量</text>
+  </g>
+  
+  <g class="feature">
+    <rect x="800" y="440" width="200" height="60" rx="5" ry="5" />
+    <text x="900" y="475" text-anchor="middle">可配置模式</text>
+  </g>
+  
+  <!-- 处理流程 -->
+  <text x="50" y="540" class="title">处理流程</text>
+  
+  <g class="flow">
+    <rect x="50" y="560" width="150" height="60" rx="5" ry="5" />
+    <text x="125" y="595" text-anchor="middle">解析命令行参数</text>
+  </g>
+  
+  <g class="flow">
+    <rect x="250" y="560" width="150" height="60" rx="5" ry="5" />
+    <text x="325" y="595" text-anchor="middle">加载配置</text>
+  </g>
+  
+  <g class="flow">
+    <rect x="450" y="560" width="150" height="60" rx="5" ry="5" />
+    <text x="525" y="595" text-anchor="middle">处理输入域名</text>
+  </g>
+  
+  <g class="flow">
+    <rect x="650" y="560" width="150" height="60" rx="5" ry="5" />
+    <text x="725" y="595" text-anchor="middle">应用模式生成变体</text>
+  </g>
+  
+  <g class="flow">
+    <rect x="850" y="560" width="150" height="60" rx="5" ry="5" />
+    <text x="925" y="595" text-anchor="middle">结果去重和输出</text>
+  </g>
+  
+  <!-- 学习路径 -->
+  <text x="50" y="660" class="title">学习路径建议</text>
+  <text x="50" y="690" font-size="14">1. 先了解 cmd/alterx/main.go 入口点和基本流程</text>
+  <text x="50" y="715" font-size="14">2. 研究 internal/runner 了解命令行参数处理</text>
+  <text x="50" y="740" font-size="14">3. 学习 inputs.go 理解域名解析和变量提取方式</text>
+  <text x="500" y="690" font-size="14">4. 研究 mutator.go 这是核心处理逻辑</text>
+  <text x="500" y="715" font-size="14">5. 了解 algo.go 中的组合爆破算法</text>
+  <text x="500" y="740" font-size="14">6. 最后学习 permutations.yaml 配置文件编写方式</text>
+  
+  <!-- 箭头连接 -->
+  <!-- 流程箭头 -->
+  <path d="M200 590 L250 590" class="arrow" marker-end="url(#arrowhead)" />
+  <path d="M400 590 L450 590" class="arrow" marker-end="url(#arrowhead)" />
+  <path d="M600 590 L650 590" class="arrow" marker-end="url(#arrowhead)" />
+  <path d="M800 590 L850 590" class="arrow" marker-end="url(#arrowhead)" />
+  
+  <!-- 组件关系箭头 -->
+  <path d="M250 140 L400 140" class="arrow" marker-end="url(#arrowhead)" />
+  <path d="M250 180 C300 220 350 260 400 240" class="arrow" marker-end="url(#arrowhead)" />
+  <path d="M250 340 C350 320 380 200 400 160" class="arrow" marker-end="url(#arrowhead)" />
+  <path d="M600 140 L750 140" class="arrow" marker-end="url(#arrowhead)" />
+  <path d="M600 180 C650 220 700 260 750 230" class="arrow" marker-end="url(#arrowhead)" />
+  <path d="M600 240 C650 200 650 180 750 160" class="arrow" marker-end="url(#arrowhead)" />
+  
+  <!-- 箭头标记定义 -->
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" 
+    refX="10" refY="3.5" orient="auto" class="arrowhead">
+      <polygon points="0 0, 10 3.5, 0 7" />
+    </marker>
+  </defs>
+</svg> 
