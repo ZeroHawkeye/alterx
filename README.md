@@ -28,8 +28,6 @@
 </b>
 </pre>
 
-![image](https://user-images.githubusercontent.com/8293321/229380735-140d3f25-d0cb-461d-8c49-4c1eff43d1f4.png)
-
 ## 特性
 - 快速且可定制化
 - **自动单词提取和丰富**
